@@ -1,7 +1,7 @@
 #include <cstdio>
 #include <filesystem>
 #include <getopt.h>
-#include <iostream>
+#include <stdexcept>
 #include <string>
 #include <unordered_set>
 
@@ -13,8 +13,6 @@ static int verbose_flag = 0;
 static int replace_flag = 0;
 
 int main(int argc, char *argv[]) {
-    std::unordered_set<std::string> src_files;
-
     std::string src_dir;
     std::string dest_dir;
     std::string format_str;
@@ -98,15 +96,39 @@ int main(int argc, char *argv[]) {
         dest_dir = src_dir;
     }
 
+    // Add all files paths to a set
+    std::unordered_set<std::string> src_files;
     get_files(src_dir, src_files);
 
     while (format_str[0] == '/') {
         format_str = format_str.substr(1);
     }
-    format_str = '/' + format_str;
-    PathBuilder path_builder(format_str);
-    // TagLib::FileRef f("/home/justint/shared/Music/Original/test.flac");
-    // TagLib::String artist = f.tag()->artist();
-    // std::cout << artist << '\n';
+    while (format_str.back() == '/') {
+        format_str.pop_back();
+    }
+
+    try {
+        PathBuilder path_builder(format_str);
+
+        // Test case
+        // FileData test;
+        // test.title = "Welcome to New York";
+        // test.artist = "Taylor Swift";
+        // test.album = "1989";
+        // test.album_artist = "1989";
+        // test.genre = "Pop";
+        // test.year = "2020";
+        // test.file_ext = "flac";
+        // std::cout << path_builder.build_path(test) << '\n';
+    } catch (std::invalid_argument err) {
+        fprintf(stderr, "%s\n", err.what());
+        return 1;
+    } catch (std::out_of_range err) {
+        // Since the above code should pop all /'s from the array, this
+        // shouldn't happen
+        fprintf(stderr, "Damn you broke something\n");
+        return 1;
+    }
+
     return 0;
 }
