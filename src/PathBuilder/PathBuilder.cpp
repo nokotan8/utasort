@@ -1,6 +1,7 @@
 #include "PathBuilder.hpp"
 #include <algorithm>
 #include <cstddef>
+#include <memory>
 #include <regex>
 #include <stdexcept>
 #include <string>
@@ -32,9 +33,7 @@ PathBuilder::PathBuilder(std::string str) {
     }
 
     if (next_str.length()) {
-        next_dir_builder = new PathBuilder(next_str);
-    } else {
-        next_dir_builder = nullptr;
+        next_dir_builder = std::make_unique<PathBuilder>(next_str);
     }
 }
 
