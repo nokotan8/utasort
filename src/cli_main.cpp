@@ -6,7 +6,7 @@
 #include <string>
 #include <unordered_set>
 
-#include "PathBuilder/PathBuilder.hpp"
+#include "PathBuilder.hpp"
 #include "get_files.hpp"
 
 namespace fs = std::filesystem;
@@ -124,7 +124,7 @@ int main(int argc, char *argv[]) {
             dest_dir + path_builder.build_path(*src_files.begin());
 
         std::cout << song_path << '\n';
-        std::filesystem::create_directories(song_path.substr(0, song_path.rfind('/')));
+        // std::filesystem::create_directories(song_path.substr(0, song_path.rfind('/')));
 
     } catch (std::invalid_argument err) {
         fprintf(stderr, "%s\n", err.what());
