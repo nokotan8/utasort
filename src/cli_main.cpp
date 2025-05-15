@@ -1,6 +1,7 @@
 #include <cstdio>
 #include <filesystem>
 #include <getopt.h>
+#include <iostream>
 #include <stdexcept>
 #include <string>
 #include <unordered_set>
@@ -44,6 +45,11 @@ int main(int argc, char *argv[]) {
             break;
         case 's': {
             src_dir = optarg;
+            while (src_dir.back() == '/') {
+                src_dir.pop_back();
+            }
+            src_dir = src_dir + '/';
+
             if (!fs::exists(src_dir) || !fs::is_directory(src_dir)) {
                 fprintf(stderr,
                         "Source directory '%s' does not exist or is not a "
@@ -55,6 +61,11 @@ int main(int argc, char *argv[]) {
         }
         case 'd': {
             dest_dir = optarg;
+            while (dest_dir.back() == '/') {
+                dest_dir.pop_back();
+            }
+            dest_dir = dest_dir + '/';
+
             if (fs::exists(dest_dir)) {
                 if (!fs::is_directory(dest_dir)) {
                     fprintf(stderr,
@@ -97,7 +108,7 @@ int main(int argc, char *argv[]) {
     }
 
     // Add all files paths to a set
-    std::unordered_set<std::string> src_files;
+    std::unordered_set<std::filesystem::path> src_files;
     get_files(src_dir, src_files);
 
     while (format_str[0] == '/') {
@@ -109,17 +120,12 @@ int main(int argc, char *argv[]) {
 
     try {
         PathBuilder path_builder(format_str);
+        const std::string song_path =
+            dest_dir + path_builder.build_path(*src_files.begin());
 
-        // Test case
-        // FileData test;
-        // test.title = "Welcome to New York";
-        // test.artist = "Taylor Swift";
-        // test.album = "1989";
-        // test.album_artist = "1989";
-        // test.genre = "Pop";
-        // test.year = "2020";
-        // test.file_ext = "flac";
-        // std::cout << path_builder.build_path(test) << '\n';
+        std::cout << song_path << '\n';
+        std::filesystem::create_directories(song_path.substr(0, song_path.rfind('/')));
+
     } catch (std::invalid_argument err) {
         fprintf(stderr, "%s\n", err.what());
         return 1;

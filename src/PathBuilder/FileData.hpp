@@ -13,6 +13,7 @@ struct FileData {
     std::string genre;
     std::string year;
     std::string file_ext;
+    std::string track_number;
 };
 
 std::string getTitle(const FileData &fileData);
@@ -27,13 +28,16 @@ std::string getGenre(const FileData &fileData);
 
 std::string getYear(const FileData &fileData);
 
+std::string getTrackNum(const FileData &fileData);
+
 // Map to convert tag string to function that gets the respective tag
 const std::unordered_map<std::string, std::function<std::string(FileData &)>>
     STRING_TO_TAG_FN = {
         {"title", getTitle},
         {"artist", getArtist},
         {"album", getAlbum},
-        {"album_artist", getAlbumArtist},
+        {"albumartist", getAlbumArtist},
         {"genre", getGenre},
-        {"year", getYear}
+        {"year", getYear},
+        {"tracknumber", getTrackNum}
     };

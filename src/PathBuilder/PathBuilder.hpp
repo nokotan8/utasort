@@ -10,7 +10,7 @@ class PathBuilder {
   public:
     PathBuilder(std::string format_str);
 
-    std::string build_path(std::filesystem::path file);
+    std::string build_path(std::filesystem::path file_data);
     std::string build_path(FileData file_data);
 
   private:

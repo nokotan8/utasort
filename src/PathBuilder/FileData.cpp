@@ -20,3 +20,6 @@ std::string getAlbumArtist(const FileData &fileData) {
 std::string getGenre(const FileData &fileData) { return fileData.genre; }
 
 std::string getYear(const FileData &fileData) { return fileData.year; }
+
+std::string getTrackNum(const FileData &fileData) { return fileData.track_number; }
+
