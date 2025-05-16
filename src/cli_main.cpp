@@ -7,17 +7,19 @@
 #include <unordered_set>
 
 #include "PathBuilder.hpp"
+#include "flags.hpp"
 #include "get_files.hpp"
 
 namespace fs = std::filesystem;
-static int verbose_flag = 0;
-static int replace_flag = 0;
+
+int verbose_flag = 0;
+int replace_flag = 0;
+int move_flag = 0;
 
 int main(int argc, char *argv[]) {
     std::string src_dir;
     std::string dest_dir;
     std::string format_str;
-    bool replace = false;
 
     int opt_char;
     while (1) {
@@ -64,8 +66,8 @@ int main(int argc, char *argv[]) {
                          "overwritten\n";
             std::cout << "Help:\n";
             std::cout << "  -h, --help\t\tShow this help message and exit\n";
-            std::cout
-                << "  -H, --format-help\tShow help for defining the format string and exit\n";
+            std::cout << "  -H, --format-help\tShow help for defining the "
+                         "format string and exit\n";
 
             exit(1);
         }
@@ -132,7 +134,7 @@ int main(int argc, char *argv[]) {
     }
 
     // Add all files paths to a set
-    std::unordered_set<std::filesystem::path> src_files;
+    std::unordered_set<fs::path> src_files;
     get_files(src_dir, src_files);
 
     while (format_str[0] == '/') {
@@ -144,11 +146,38 @@ int main(int argc, char *argv[]) {
 
     try {
         PathBuilder path_builder(format_str);
-        const std::string song_path =
-            dest_dir + path_builder.build_path(*src_files.begin());
+        fs::path src_file_path;
+        std::string dest_file_path;
+        std::string dest_file_dir;
+        fs::copy_options copy_options =
+            replace_flag ? fs::copy_options::overwrite_existing
+                         : fs::copy_options::skip_existing;
+        while (!src_files.empty()) {
+            src_file_path = *src_files.begin();
+            dest_file_path = dest_dir + path_builder.build_path(src_file_path);
+            dest_file_dir = dest_file_path.substr(0, dest_file_path.rfind('/'));
+            fs::create_directories(dest_file_dir);
+            if (fs::copy_file(src_file_path, dest_file_path, copy_options)) {
+                if (verbose_flag) {
+                    fprintf(stdout, "%s -> %s\n", src_file_path.c_str(),
+                            dest_file_path.c_str());
+                }
+            } else {
+                if (verbose_flag && fs::exists(dest_file_path)) {
+                    fprintf(stdout,
+                            "Destination file %s already exists, skipped\n",
+                            dest_file_path.c_str());
+                } else {
+                    fprintf(stderr, "Error: file %s could not be copied\n",
+                            src_file_path.c_str());
+                }
+            }
 
-        std::cout << song_path << '\n';
-        // std::filesystem::create_directories(song_path.substr(0,
+            src_files.erase(src_file_path);
+        }
+
+        // std::cout << song_path << '\n';
+        // fs::create_directories(song_path.substr(0,
         // song_path.rfind('/')));
 
     } catch (std::invalid_argument err) {

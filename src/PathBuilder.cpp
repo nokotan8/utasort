@@ -1,5 +1,6 @@
 #include "PathBuilder.hpp"
 #include <algorithm>
+#include <cctype>
 #include <regex>
 #include <stdexcept>
 #include <string>
@@ -34,10 +35,14 @@ std::string PathBuilder::build_path(std::filesystem::path audio_file_path) {
 
     for (std::string tag : format_tags) {
         if (file_tags.find(tag) == file_tags.end()) {
-            file_tags[tag] =
+            std::string new_tag =
                 (audio_file_props.find(tag) != audio_file_props.end())
                     ? audio_file_props[tag].toString().to8Bit(true)
                     : "";
+
+            // Forward slashes not allowed in file path
+            std::replace(new_tag.begin(), new_tag.end(), '/', '_');
+            file_tags[tag] = new_tag;
         }
         std::size_t format_pos = res_str.find('\x01');
         res_str.replace(format_pos, 1, file_tags[tag]);
