@@ -23,17 +23,18 @@ int main(int argc, char *argv[]) {
     while (1) {
         static struct option long_opts[] = {
             {"verbose", no_argument, &verbose_flag, 1},
-            {"replace", no_argument, &replace_flag, 1},
 
-            {"source-dir", required_argument, 0, 's'},
-            {"destination-dir", required_argument, 0, 'd'},
+            {"help", no_argument, 0, 'h'},
+            {"source", required_argument, 0, 's'},
+            {"dest", required_argument, 0, 'd'},
             {"format", required_argument, 0, 'f'},
+            {"replace", no_argument, 0, 'r'},
             {0, 0, 0, 0}
 
         };
 
         int opt_index = 0;
-        opt_char = getopt_long(argc, argv, "s:d:f:r", long_opts, &opt_index);
+        opt_char = getopt_long(argc, argv, "hs:d:f:r", long_opts, &opt_index);
 
         if (opt_char == -1)
             break;
@@ -43,6 +44,31 @@ int main(int argc, char *argv[]) {
             // if (long_opts[opt_index].flag != 0)
             //     break;
             break;
+        case 'h': {
+            std::cout << "Usage: utasort -f <format_str> -s <source_dir> "
+                         "[options]...\n";
+            std::cout << "Required:\n";
+            std::cout << "  -s, --source path\tPath to the source directory\n";
+            std::cout << "  -f, --format string\tFormat string for the "
+                         "directory structure\n";
+            std::cout << "Optional:\n";
+            std::cout << "      --verbose\t\tPrint more information, including "
+                         "the source and destination of every file\n";
+            std::cout << "  -d, --dest path\tPath to the destination "
+                         "directory;\n";
+            std::cout << "\t\t\tIf not specified, the source directory will be "
+                         "used\n";
+            std::cout << "  -r, --replace\t\tReplace files in the destination "
+                         "directory if there are collisions;\n";
+            std::cout << "\t\t\tIf not specified, existing files will not be "
+                         "overwritten\n";
+            std::cout << "Help:\n";
+            std::cout << "  -h, --help\t\tShow this help message and exit\n";
+            std::cout
+                << "  -H, --format-help\tShow help for defining the format string and exit\n";
+
+            exit(1);
+        }
         case 's': {
             src_dir = optarg;
             while (src_dir.back() == '/') {
@@ -74,19 +100,17 @@ int main(int argc, char *argv[]) {
                     return 1;
                 }
             } else {
-                if (fs::create_directories(dest_dir)) {
-                    printf("Destination directory '%s' created\n", optarg);
-                } else {
-                    fprintf(stderr,
-                            "Could not create destination directory '%s'",
-                            optarg);
-                    return 1;
-                }
+                fprintf(stderr, "Destination directory '%s' does not exist",
+                        optarg);
+                return 1;
             }
             break;
         }
         case 'f':
             format_str = optarg;
+            break;
+        case 'r':
+            replace_flag = 1;
             break;
         case '?':
             break;
@@ -124,7 +148,8 @@ int main(int argc, char *argv[]) {
             dest_dir + path_builder.build_path(*src_files.begin());
 
         std::cout << song_path << '\n';
-        // std::filesystem::create_directories(song_path.substr(0, song_path.rfind('/')));
+        // std::filesystem::create_directories(song_path.substr(0,
+        // song_path.rfind('/')));
 
     } catch (std::invalid_argument err) {
         fprintf(stderr, "%s\n", err.what());
