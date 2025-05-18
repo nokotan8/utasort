@@ -7,6 +7,7 @@ add_executable(utasort
     src/cli_main.cpp
     src/get_files.cpp
     src/PathBuilder.cpp
+    src/copy_files.cpp
 )
 target_link_libraries(utasort 
     TagLib::tag
