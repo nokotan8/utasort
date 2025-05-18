@@ -40,7 +40,7 @@ std::string PathBuilder::build_path(std::filesystem::path audio_file_path) {
                     ? audio_file_props[tag].toString().to8Bit(true)
                     : "";
 
-            replace_invalid_chars(new_tag, '_', EXFAT);
+            replace_invalid_chars(new_tag, '_', FS_EXFAT);
             file_tags[tag] = new_tag;
         }
         std::size_t format_pos = res_str.find('\x01');

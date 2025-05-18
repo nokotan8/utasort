@@ -1,14 +1,14 @@
+#include "copy_files.hpp"
+#include "flags.hpp"
+#include "get_files.hpp"
+
 #include <cstdio>
+#include <cstdlib>
 #include <filesystem>
 #include <getopt.h>
 #include <iostream>
-#include <stdexcept>
 #include <string>
 #include <unordered_set>
-
-#include "PathBuilder.hpp"
-#include "flags.hpp"
-#include "get_files.hpp"
 
 namespace fs = std::filesystem;
 
@@ -20,6 +20,7 @@ int main(int argc, char *argv[]) {
     std::string src_dir;
     std::string dest_dir;
     std::string format_str;
+    int num_threads = 1;
 
     int opt_char;
     while (1) {
@@ -30,13 +31,16 @@ int main(int argc, char *argv[]) {
             {"source", required_argument, 0, 's'},
             {"dest", required_argument, 0, 'd'},
             {"format", required_argument, 0, 'f'},
+            {"threads", required_argument, 0, 't'},
             {"replace", no_argument, 0, 'r'},
+            {"move", no_argument, 0, 'm'},
             {0, 0, 0, 0}
 
         };
 
         int opt_index = 0;
-        opt_char = getopt_long(argc, argv, "hs:d:f:r", long_opts, &opt_index);
+        opt_char =
+            getopt_long(argc, argv, "hs:d:f:t:rm", long_opts, &opt_index);
 
         if (opt_char == -1)
             break;
@@ -69,7 +73,7 @@ int main(int argc, char *argv[]) {
             std::cout << "  -H, --format-help\tShow help for defining the "
                          "format string and exit\n";
 
-            exit(1);
+            return 0;
         }
         case 's': {
             src_dir = optarg;
@@ -108,11 +112,17 @@ int main(int argc, char *argv[]) {
             }
             break;
         }
+        case 't':
+            num_threads = atoi(optarg);
+            break;
         case 'f':
             format_str = optarg;
             break;
         case 'r':
             replace_flag = 1;
+            break;
+        case 'm':
+            move_flag = 1;
             break;
         case '?':
             break;
@@ -144,45 +154,7 @@ int main(int argc, char *argv[]) {
         format_str.pop_back();
     }
 
-    PathBuilder path_builder(format_str);
-    fs::path src_file_path;
-    std::string dest_file_path;
-    std::string dest_file_dir;
-    fs::copy_options copy_options = replace_flag
-                                        ? fs::copy_options::overwrite_existing
-                                        : fs::copy_options::skip_existing;
-    while (!src_files.empty()) {
-        try {
-            src_file_path = *src_files.begin();
-            dest_file_path = dest_dir + path_builder.build_path(src_file_path);
-            dest_file_dir = dest_file_path.substr(0, dest_file_path.rfind('/'));
-            fs::create_directories(dest_file_dir);
-            if (fs::copy_file(src_file_path, dest_file_path, copy_options)) {
-                if (verbose_flag) {
-                    fprintf(stdout, "%s -> %s\n", src_file_path.c_str(),
-                            dest_file_path.c_str());
-                }
-            } else {
-                if (fs::exists(dest_file_path)) {
-                    if (verbose_flag) {
-                        fprintf(stdout,
-                                "Destination file %s already exists, skipped\n",
-                                dest_file_path.c_str());
-                    }
-                } else {
-                    fprintf(stderr, "Error: file %s could not be copied\n",
-                            src_file_path.c_str());
-                }
-            }
-
-        } catch (std::invalid_argument err) {
-            fprintf(stderr, "%s\n", err.what());
-        } catch (fs::filesystem_error err) {
-            fprintf(stderr, "%s\n", err.what());
-        }
-
-        src_files.erase(src_file_path);
-    }
+    copy_files(src_files, format_str, dest_dir, num_threads);
 
     return 0;
 }

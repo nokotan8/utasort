@@ -3,8 +3,8 @@
 #include <unordered_set>
 #include <vector>
 
-const int EXT4 = 0;
-const int EXFAT = 1;
+const int FS_EXT4 = 0;
+const int FS_EXFAT = 1;
 
 const std::unordered_set<char> invalid_chars_exfat = {'"', '*', '/',  ':', '<',
                                                       '>', '?', '\\', '|'};
