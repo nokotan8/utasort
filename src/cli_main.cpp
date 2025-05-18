@@ -144,15 +144,15 @@ int main(int argc, char *argv[]) {
         format_str.pop_back();
     }
 
-    try {
-        PathBuilder path_builder(format_str);
-        fs::path src_file_path;
-        std::string dest_file_path;
-        std::string dest_file_dir;
-        fs::copy_options copy_options =
-            replace_flag ? fs::copy_options::overwrite_existing
-                         : fs::copy_options::skip_existing;
-        while (!src_files.empty()) {
+    PathBuilder path_builder(format_str);
+    fs::path src_file_path;
+    std::string dest_file_path;
+    std::string dest_file_dir;
+    fs::copy_options copy_options = replace_flag
+                                        ? fs::copy_options::overwrite_existing
+                                        : fs::copy_options::skip_existing;
+    while (!src_files.empty()) {
+        try {
             src_file_path = *src_files.begin();
             dest_file_path = dest_dir + path_builder.build_path(src_file_path);
             dest_file_dir = dest_file_path.substr(0, dest_file_path.rfind('/'));
@@ -163,31 +163,25 @@ int main(int argc, char *argv[]) {
                             dest_file_path.c_str());
                 }
             } else {
-                if (verbose_flag && fs::exists(dest_file_path)) {
-                    fprintf(stdout,
-                            "Destination file %s already exists, skipped\n",
-                            dest_file_path.c_str());
+                if (fs::exists(dest_file_path)) {
+                    if (verbose_flag) {
+                        fprintf(stdout,
+                                "Destination file %s already exists, skipped\n",
+                                dest_file_path.c_str());
+                    }
                 } else {
                     fprintf(stderr, "Error: file %s could not be copied\n",
                             src_file_path.c_str());
                 }
             }
 
-            src_files.erase(src_file_path);
+        } catch (std::invalid_argument err) {
+            fprintf(stderr, "%s\n", err.what());
+        } catch (fs::filesystem_error err) {
+            fprintf(stderr, "%s\n", err.what());
         }
 
-        // std::cout << song_path << '\n';
-        // fs::create_directories(song_path.substr(0,
-        // song_path.rfind('/')));
-
-    } catch (std::invalid_argument err) {
-        fprintf(stderr, "%s\n", err.what());
-        return 1;
-    } catch (std::out_of_range err) {
-        // Since the above code should pop all /'s from the array, this
-        // shouldn't happen
-        fprintf(stderr, "Damn you broke something\n");
-        return 1;
+        src_files.erase(src_file_path);
     }
 
     return 0;

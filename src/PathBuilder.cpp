@@ -40,8 +40,7 @@ std::string PathBuilder::build_path(std::filesystem::path audio_file_path) {
                     ? audio_file_props[tag].toString().to8Bit(true)
                     : "";
 
-            // Forward slashes not allowed in file path
-            std::replace(new_tag.begin(), new_tag.end(), '/', '_');
+            replace_invalid_chars(new_tag, '_', EXFAT);
             file_tags[tag] = new_tag;
         }
         std::size_t format_pos = res_str.find('\x01');
@@ -49,4 +48,13 @@ std::string PathBuilder::build_path(std::filesystem::path audio_file_path) {
     }
     res_str += audio_file_path.extension();
     return res_str;
+}
+
+void PathBuilder::replace_invalid_chars(std::string &str, char repl_char,
+                                        int fs) {
+    for (int i = 0; i < str.size(); i++) {
+        if (invalid_chars_exfat.count(str[i])) {
+            str[i] = repl_char;
+        }
+    }
 }
