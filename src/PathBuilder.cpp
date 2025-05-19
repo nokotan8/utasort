@@ -25,13 +25,18 @@ PathBuilder::PathBuilder(std::string str) {
 
 std::string PathBuilder::build_path(std::filesystem::path audio_file_path) {
     TagLib::FileRef audio_file(audio_file_path.c_str());
-    TagLib::PropertyMap audio_file_props = audio_file.properties();
     if (audio_file.isNull()) {
-        throw std::invalid_argument("Specified file does not exist");
+        throw std::invalid_argument(
+            "Specified file does not exist or is not a supported audio file");
     }
+    TagLib::PropertyMap audio_file_props = audio_file.properties();
 
     std::string res_str = format_str;
     std::unordered_map<std::string, std::string> file_tags;
+
+    // for (const auto &tag : audio_file_props) {
+    //     std::cout << tag.first << ' ' << tag.second.toString().to8Bit(true) << '\n';
+    // }
 
     for (std::string tag : format_tags) {
         if (file_tags.find(tag) == file_tags.end()) {

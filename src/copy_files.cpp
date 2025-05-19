@@ -30,8 +30,13 @@ void copy_files(std::unordered_set<fs::path> &src_files,
         threads[i].join();
     }
 
-    fprintf(stdout, "Copied %lu files to %s\n", copy_count.load(),
-            dest_dir.c_str());
+    if (!preview_flag) {
+        fprintf(stdout, "Copied %lu files to '%s'\n", copy_count.load(),
+                dest_dir.c_str());
+    } else {
+        fprintf(stdout, "Preview: %lu files would have been copied to '%s'\n",
+                copy_count.load(), dest_dir.c_str());
+    }
 }
 
 void copy_files_thread(std::unordered_set<std::filesystem::path> &src_files,
@@ -54,30 +59,36 @@ void copy_files_thread(std::unordered_set<std::filesystem::path> &src_files,
                     dest_dir + path_builder.build_path(src_file_path);
                 dest_file_dir =
                     dest_file_path.substr(0, dest_file_path.rfind('/'));
-                fs::create_directories(dest_file_dir);
-                if (fs::copy_file(src_file_path, dest_file_path,
-                                  copy_options)) {
-                    copy_count++;
-                    if (verbose_flag) {
-                        fprintf(stdout, "%s -> %s\n", src_file_path.c_str(),
-                                dest_file_path.c_str());
-                    }
-                } else {
-                    if (fs::exists(dest_file_path)) {
+                if (!preview_flag) {
+                    fs::create_directories(dest_file_dir);
+                    if (fs::copy_file(src_file_path, dest_file_path,
+                                      copy_options)) {
+                        copy_count++;
                         if (verbose_flag) {
-                            fprintf(
-                                stdout,
-                                "Destination file %s already exists, skipped\n",
-                                dest_file_path.c_str());
+                            fprintf(stdout, "%s\n", dest_file_path.c_str());
                         }
                     } else {
-                        fprintf(stderr, "Error: file %s could not be copied\n",
-                                src_file_path.c_str());
+                        if (fs::exists(dest_file_path)) {
+                            if (verbose_flag) {
+                                fprintf(stdout,
+                                        "'%s' already exists, skipped\n",
+                                        dest_file_path.c_str());
+                            }
+                        } else {
+                            fprintf(stderr,
+                                    "Error: file '%s' could not be copied\n",
+                                    src_file_path.c_str());
+                        }
                     }
+                } else {
+                    if (!fs::exists(dest_file_path)) {
+                        fprintf(stdout, "%s\n", dest_file_path.c_str());
+                    }
+                    copy_count++;
                 }
-
             } catch (std::invalid_argument err) {
-                fprintf(stderr, "%s\n", err.what());
+                // fprintf(stderr, "%s\n", err.what());
+                continue;
             } catch (fs::filesystem_error err) {
                 fprintf(stderr, "%s\n", err.what());
             }
