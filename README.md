@@ -36,8 +36,6 @@ cmake --build .
 
 ## Usage
 
-For detailed help instructions, build the project and run:
-
 ```
 Usage: utasort -f <format_str> -s <source_dir> [options]...
 Required:
