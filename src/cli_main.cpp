@@ -15,6 +15,7 @@ namespace fs = std::filesystem;
 int verbose_flag = 0;
 int replace_flag = 0;
 int move_flag = 0;
+int preview_flag = 0;
 
 int main(int argc, char *argv[]) {
     std::string src_dir;
@@ -25,8 +26,7 @@ int main(int argc, char *argv[]) {
     int opt_char;
     while (1) {
         static struct option long_opts[] = {
-            {"verbose", no_argument, &verbose_flag, 1},
-
+            {"verbose", no_argument, 0, 'v'},
             {"help", no_argument, 0, 'h'},
             {"source", required_argument, 0, 's'},
             {"dest", required_argument, 0, 'd'},
@@ -34,13 +34,14 @@ int main(int argc, char *argv[]) {
             {"threads", required_argument, 0, 't'},
             {"replace", no_argument, 0, 'r'},
             {"move", no_argument, 0, 'm'},
+            {"preview", no_argument, 0, 'p'},
             {0, 0, 0, 0}
 
         };
 
         int opt_index = 0;
         opt_char =
-            getopt_long(argc, argv, "hs:d:f:t:rm", long_opts, &opt_index);
+            getopt_long(argc, argv, "vhs:d:f:t:rmp", long_opts, &opt_index);
 
         if (opt_char == -1)
             break;
@@ -58,23 +59,33 @@ int main(int argc, char *argv[]) {
             std::cout << "  -f, --format string\tFormat string for the "
                          "directory structure\n";
             std::cout << "Optional:\n";
-            std::cout << "      --verbose\t\tPrint more information, including "
-                         "the source and destination of every file\n";
             std::cout << "  -d, --dest path\tPath to the destination "
                          "directory;\n";
             std::cout << "\t\t\tIf not specified, the source directory will be "
                          "used\n";
+            std::cout << "  -t, --threads integer\tThe number of threads to "
+                         "use when copying files;\n";
+            std::cout << "\t\t\tThe default is 1, and it is recommended to use "
+                         "no more than 8\n";
             std::cout << "  -r, --replace\t\tReplace files in the destination "
                          "directory if there are collisions;\n";
             std::cout << "\t\t\tIf not specified, existing files will not be "
                          "overwritten\n";
+            std::cout << "  -p, --preview\t\tShow a list of files that would "
+                         "be moved/copied,;\n";
+            std::cout << "\t\t\tbut do not commit any changes to disk\n";
+            std::cout << "  -v, --verbose\t\tPrint more information, including "
+                         "the destination of all copied files\n";
             std::cout << "Help:\n";
             std::cout << "  -h, --help\t\tShow this help message and exit\n";
             std::cout << "  -H, --format-help\tShow help for defining the "
-                         "format string and exit\n";
+                         "format string and exit (doesn't work yet)\n";
 
             return 0;
         }
+        case 'v':
+            verbose_flag = 1;
+            break;
         case 's': {
             src_dir = optarg;
             while (src_dir.back() == '/') {
@@ -123,6 +134,9 @@ int main(int argc, char *argv[]) {
             break;
         case 'm':
             move_flag = 1;
+            break;
+        case 'p':
+            preview_flag = 1;
             break;
         case '?':
             break;
