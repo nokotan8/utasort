@@ -64,7 +64,7 @@ Unless mentioned otherwise, measurements are made with GNU `time`.
 
 Once again, 
 take these results with a grain of salt. This SSD is really fast, and this HDD is really slow but it's the only
-one I have lying around.
+one I have lying around. You may get different results using your own files and hardware.
 
 Utasort can be considerably more performant than other similar software when reading/writing on an SSD, even when
 comparing singlethreaded performance. However, performance is roughly equal when tested on a HDD. 
