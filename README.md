@@ -92,6 +92,17 @@ results in negligible performance improvements (or deterioration) after a certai
 On a HDD, it is recommended to stick to 1 thread as concurrent writes may worsen
 performance due to incurring more seek operations.
 
+### Benchmarks
+
+Benchmarks can be found in [benchmarks.md](/benchmarks.md)
+
+#### TLDR
+
+Fast on SSDs, with multithreading yielding considerable improvements. With bigger files,
+multithreading yields smaller improvements.
+
+Similar speed to other software on HDDs, with multithreading resulting in performance losses.
+
 ## Third-Party Software Notice
 
 This software uses TagLib (dynamically linked) to read audio file metadata.
